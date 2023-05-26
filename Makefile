@@ -2,4 +2,4 @@ hello:
 	echo "Hello"
 
 probe: src/probe.c
-	cc probe.c -o probe
+	cc src/probe.c -o probe
