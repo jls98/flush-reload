@@ -1,6 +1,3 @@
-probe: src/probe.c hello
+probe: src/probe.c
 	echo "probe"
 	cc src/probe.c -o probe
-	
-hello:
-	echo "Hello"

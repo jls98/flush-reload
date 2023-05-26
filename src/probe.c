@@ -4,8 +4,31 @@
 #include <stdlib.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include <stdint.h>
+#include <stdint.h>
 
 #define THRESHOLD 300
+
+// GPT
+void busyWaitCycles(long cycles) {
+    long start = 0;
+    long current = 0;
+
+    // Bestimme den aktuellen Zeitstempel
+    #if defined(_WIN32)
+        // Windows-Implementierung
+        QueryPerformanceCounter((LARGE_INTEGER*)&start);
+    #endif
+
+    // Führe den "busy-wait" aus, bis die gewünschte Anzahl an Zyklen erreicht ist
+    do {
+        // Bestimme den aktuellen Zeitstempel
+        #if defined(_WIN32)
+            // Windows-Implementierung
+            QueryPerformanceCounter((LARGE_INTEGER*)&current);
+        #endif
+    } while ((current - start) < cycles);
+}
 
 // probe from paper
 int probe_treshold(char *adrs)
@@ -50,6 +73,12 @@ int probe_precise(char *adrs)
 
 // spy process probing certain memory addresses
 
+static __inline__ unsigned long long rdtsc(void)
+{
+    unsigned long long int x;
+    __asm__ volatile (".byte 0x0f, 0x31" : "=A" (x));
+    return x;
+}
 /**
  * loop
  * probe addresses and safe results in lists (or define length ("buffer") at beginning and just fill array)
@@ -68,10 +97,11 @@ void spy(char **target_adrs, int adrs_amount, int probes_amount)
         tsc=rdtsc();
         while (tsc - old_tsc < 2500)
         {
-            busy_wait((2500-tsc+old_tsc) / 50);
+            printf("waiting %llu cycles\n", (2500-tsc+old_tsc) / 50);
+            busyWaitCycles((2500-tsc+old_tsc) / 50);
             tsc = rdtsc();
         }
-        printf("system time counter: %lu, counter diff: %lu", tsc, tsc-old_tsc);
+        printf("system time counter: %llu, counter diff: %llu\n", tsc, tsc-old_tsc);
         for(int cur_adr_i=0;cur_adr_i<adrs_amount;cur_adr_i++)
         {
             char *ptr=target_adrs[cur_adr_i];
