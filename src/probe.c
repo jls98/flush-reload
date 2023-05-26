@@ -30,7 +30,6 @@ int probe_treshold(char *adrs)
 
 int probe_precise(char *adrs)
 {
-    printf("entering probe precise\n");
     volatile unsigned long time;
 
     __asm__ __volatile__ (
@@ -59,18 +58,25 @@ int probe_precise(char *adrs)
  */
 void spy(char **target_adrs, int adrs_amount, int probes_amount)
 {
-    unsigned long current_probe_time, probe_time;
+    unsigned long long old_tsc, tsc = rdtsc();
+    unsigned long probe_time;
     //unsigned long adrs_times[adrs_amount][probes_amount]; // persistence TODO later
     for(int cur_slot=0;cur_slot<probes_amount;cur_slot++)
     {
-        current_probe_time = 0;
+        // update time stamps
+        old_tsc = tsc;
+        tsc=rdtsc();
+        while (tsc - old_tsc < 2500)
+        {
+            busy_wait((2500-tsc+old_tsc) / 50);
+            tsc = rdtsc();
+        }
+        printf("system time counter: %lu, counter diff: %lu", tsc, tsc-old_tsc);
         for(int cur_adr_i=0;cur_adr_i<adrs_amount;cur_adr_i++)
         {
             char *ptr=target_adrs[cur_adr_i];
-            printf("current adrs %p\n", ptr);
             probe_time=probe_precise(ptr); 
             printf("measured value for adrs %p is %lu\n", ptr, probe_time);                             // probe
-            current_probe_time+=probe_time;                 // sum up probe times
                                                                         // add timing to array for persistence 
         }
                                                                         // wait 2500 cycles in ns current_probe_time asd (how?)
