@@ -1,3 +1,3 @@
 probe: src/probe.c
-	echo "probe"
+	echo "compiling probe.c"
 	cc src/probe.c -o probe
