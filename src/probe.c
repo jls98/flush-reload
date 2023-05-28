@@ -9,26 +9,8 @@
 
 #define THRESHOLD 300
 
-// GPT
-void busyWaitCycles(long cycles) {
-    long start = 0;
-    long current = 0;
-
-    // Bestimme den aktuellen Zeitstempel
-    #if defined(_WIN32)
-        // Windows-Implementierung
-        QueryPerformanceCounter((LARGE_INTEGER*)&start);
-    #endif
-
-    // Führe den "busy-wait" aus, bis die gewünschte Anzahl an Zyklen erreicht ist
-    do {
-        // Bestimme den aktuellen Zeitstempel
-        #if defined(_WIN32)
-            // Windows-Implementierung
-            QueryPerformanceCounter((LARGE_INTEGER*)&current);
-        #endif
-    } while ((current - start) < cycles);
-}
+// DaGe f+r implementation
+//#define busy_wait(cycles) for(volatile long i_ = 0; i_ != cycles; i_++);
 
 // probe from paper
 int probe_treshold(char *adrs)
@@ -72,11 +54,11 @@ int probe_precise(char *adrs)
 }
 
 // spy process probing certain memory addresses
-
+/*
 static __inline__ unsigned long long rdtsc(void)
 {
     unsigned long long int x;
-    __asm__ volatile (".byte 0x0f, 0x31" : "=A" (x));
+    __asm__ __volatile__ (".byte 0x0f, 0x31" : "=A" (x));
     return x;
 }
 /**
@@ -94,13 +76,13 @@ void spy(char **target_adrs, int adrs_amount, int probes_amount)
     {
         // update time stamps
         old_tsc = tsc;
-        tsc=rdtsc();
+        /*tsc=rdtsc();
         while (tsc - old_tsc < 2500)
         {
             printf("waiting %llu cycles\n", (2500-tsc+old_tsc) / 50);
-            busyWaitCycles((2500-tsc+old_tsc) / 50);
-            tsc = rdtsc();
-        }
+            //busy_wait((2500-tsc+old_tsc) / 50);
+            //tsc = rdtsc();
+        }*/
         printf("system time counter: %llu, counter diff: %llu\n", tsc, tsc-old_tsc);
         for(int cur_adr_i=0;cur_adr_i<adrs_amount;cur_adr_i++)
         {
