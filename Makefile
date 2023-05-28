@@ -1,3 +1,3 @@
 probe: src/probe.c
 	echo "compiling probe.c"
-	cc src/probe.c -o probe
+	cc -Wall -Wextra -fdiagnostics-color=always -g src/probe.c -o probe
