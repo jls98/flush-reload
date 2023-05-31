@@ -37,6 +37,8 @@ int probe_precise(char *adrs)
 {
     volatile unsigned long time;
 
+    // where are we using edx?
+    // when do we write something into %1?? and output (%0)
     __asm__ __volatile__ (
         " mfence            \n"
         " lfence            \n"
@@ -54,11 +56,11 @@ int probe_precise(char *adrs)
 }
 
 // spy process probing certain memory addresses
-
+// https://stackoverflow.com/questions/13772567/how-to-get-the-cpu-cycle-count-in-x86-64-from-c
 static __inline__ unsigned long long rdtsc(void)
 {
     unsigned long long int x;
-    __asm__ __volatile__ (".byte 0x0f, 0x31" : "=A" (x));
+    __asm__ __volatile__ ("rdtsc" : "=A" (x));
     return x;
 }
 /**
@@ -108,3 +110,6 @@ int main(int argc, char *argv[])
     spy(target_adrs, adrs_amount, pr_amount);
     printf("ending\n");
 }
+
+
+// compile without cygwin1.dll, execute with cygwin1.dll in System32
