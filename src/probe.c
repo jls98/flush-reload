@@ -65,18 +65,29 @@ static __inline__ unsigned long long rdtsc(void)
 }
 
 // write measurements to file
-void writer()
+void writer(char **target_adrs, int adrs_amount, unsigned int **measurements, int probes_amount)
 {
-    FILE *file = fopen("testfile.txt", "w");
-    if (file == NULL) {
-        printf("Failed to open the file.\n");
-        return 1; // Exit the program with an error code
+    char str_buf[20];
+    char time[20];
+    char name_buf[50];
+    for(int i=0; i<adrs_amount; i++)
+    {
+        sprintf(time, "%d", rdtsc());
+        sprintf(str_buf, "%x", *target_adrs[i]);
+        printf("reading %p\n", *target_adrs[i]);
+        name_buf = "measurements_"+*str_buf+"_"+*time+".txt";
+        FILE *file = fopen(name_buf, "w");
+        if (file == NULL) {
+            printf("Failed to open the file.\n");
+            return; // Exit the program with an error code
+        }
+
+        fprintf(file, "Hello, World!\n");
+        fprintf(file, "This is a line of text.\n");
+
+        fclose(file);
     }
-
-    fprintf(file, "Hello, World!\n");
-    fprintf(file, "This is a line of text.\n");
-
-    fclose(file);
+    
 }
 
 /**
@@ -110,6 +121,7 @@ void spy(char **target_adrs, int adrs_amount, int probes_amount)
         }
                                                                                                         // wait 2500 cycles in ns current_probe_time asd (how?)
     }
+    writer(target_adrs, adrs_amount, measurements, probes_amount);
     printf("end spy\n");
 }
 
