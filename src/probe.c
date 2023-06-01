@@ -10,7 +10,7 @@
 #define THRESHOLD 300
 
 // DaGe f+r implementation
-#define busy_wait(cycles) for(volatile long i_ = 0; i_ != cycles; i_++);
+#define busy_wait(cycles) for(volatile long i_ = 0; i_ != cycles; i_++); // importance?
 
 // probe from paper
 int probe_treshold(char *adrs)
@@ -63,6 +63,22 @@ static __inline__ unsigned long long rdtsc(void)
     __asm__ __volatile__ ("rdtsc" : "=A" (x));
     return x;
 }
+
+// write measurements to file
+void writer()
+{
+    FILE *file = fopen("testfile.txt", "w");
+    if (file == NULL) {
+        printf("Failed to open the file.\n");
+        return 1; // Exit the program with an error code
+    }
+
+    fprintf(file, "Hello, World!\n");
+    fprintf(file, "This is a line of text.\n");
+
+    fclose(file);
+}
+
 /**
  * loop
  * probe addresses and safe results in lists (or define length ("buffer") at beginning and just fill array)
@@ -72,28 +88,27 @@ static __inline__ unsigned long long rdtsc(void)
 void spy(char **target_adrs, int adrs_amount, int probes_amount)
 {
     unsigned long long old_tsc, tsc = rdtsc();
-    unsigned long probe_time;
-    //unsigned long adrs_times[adrs_amount][probes_amount]; // persistence TODO later
+    unsigned int measurements[adrs_amount][probes_amount]; // results
     for(int cur_slot=0;cur_slot<probes_amount;cur_slot++)
     {
         // update time stamps
         old_tsc = tsc;
         tsc=rdtsc();
-        while (tsc - old_tsc < 2500)
+        while (tsc - old_tsc < 2500) // TODO why 2500/500 cycles per slot now, depending on printf
         {
-            printf("waiting %llu cycles\n", (2500-tsc+old_tsc) / 50);
-            busy_wait((2500-tsc+old_tsc) / 50);
+            //printf("waiting %llu cycles\n", (2500-tsc+old_tsc) / 50);
+            //busy_wait((2500-tsc+old_tsc) / 50);
             tsc = rdtsc();
         }
         printf("system time counter: %llu, counter diff: %llu\n", tsc, tsc-old_tsc);
         for(int cur_adr_i=0;cur_adr_i<adrs_amount;cur_adr_i++)
         {
             char *ptr=target_adrs[cur_adr_i];
-            probe_time=probe_precise(ptr); 
-            printf("measured value for adrs %p is %lu\n", ptr, probe_time);                             // probe
-                                                                        // add timing to array for persistence 
+            measurements[cur_adr_i][cur_slot]=probe_precise(ptr); 
+            printf("measured value for adrs %p is %i\n", ptr, measurements[cur_adr_i][cur_slot]);                             // probe
+                                                                                                        // add timing to array for persistence 
         }
-                                                                        // wait 2500 cycles in ns current_probe_time asd (how?)
+                                                                                                        // wait 2500 cycles in ns current_probe_time asd (how?)
     }
     printf("end spy\n");
 }
@@ -108,8 +123,9 @@ int main(int argc, char *argv[])
     int adrs_amount = 2, pr_amount = 2000;
     printf("starting spy\n");
     spy(target_adrs, adrs_amount, pr_amount);
-    printf("ending\n");
+    printf("ending\n");    
 }
 
-
 // compile without cygwin1.dll, execute with cygwin1.dll in System32
+
+// TODO status access violation for first time?? lol
