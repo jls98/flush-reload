@@ -66,7 +66,7 @@ static __inline__ unsigned long long rdtsc(void)
 }
 
 // write measurements to file
-void writer(char **target_adrs, int adrs_amount, unsigned int** measurements)
+void writer(char **target_adrs, int adrs_amount, unsigned int measurements[][CYCLE_AMOUNT])
 {
     char name_buf[50];
     char result_buf[20];
