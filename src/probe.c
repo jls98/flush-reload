@@ -8,6 +8,7 @@
 #include <stdint.h>
 
 #define THRESHOLD 300
+#define CYCLE_AMOUNT 2000
 
 // DaGe f+r implementation
 #define busy_wait(cycles) for(volatile long i_ = 0; i_ != cycles; i_++); // importance?
@@ -65,25 +66,25 @@ static __inline__ unsigned long long rdtsc(void)
 }
 
 // write measurements to file
-void writer(char **target_adrs, int adrs_amount, unsigned int **measurements, int probes_amount)
+void writer(char **target_adrs, int adrs_amount, unsigned int** measurements)
 {
-    char str_buf[20];
-    char time[20];
     char name_buf[50];
+    char result_buf[20];
     for(int i=0; i<adrs_amount; i++)
     {
-        sprintf(time, "%d", rdtsc());
-        sprintf(str_buf, "%x", *target_adrs[i]);
-        printf("reading %p\n", *target_adrs[i]);
-        name_buf = "measurements_"+*str_buf+"_"+*time+".txt";
+        char *ptr = target_adrs[i];
+        sprintf(name_buf, "%s%p%s%lld%s", "measurements_",ptr,"_",rdtsc(),".txt");
         FILE *file = fopen(name_buf, "w");
-        if (file == NULL) {
+        if (file == NULL)
+        {
             printf("Failed to open the file.\n");
-            return; // Exit the program with an error code
+            return; // Exit
         }
-
-        fprintf(file, "Hello, World!\n");
-        fprintf(file, "This is a line of text.\n");
+        for (int j=0; j<CYCLE_AMOUNT; j++)
+        {
+            sprintf(result_buf, "%d\n", measurements[i][j]);
+            fprintf(file, result_buf);
+        }
 
         fclose(file);
     }
@@ -96,11 +97,11 @@ void writer(char **target_adrs, int adrs_amount, unsigned int **measurements, in
  * wait (how to ensure constant duration of time slots?)
  * if no cache hits for X times or array full finish and create files with timings
  */
-void spy(char **target_adrs, int adrs_amount, int probes_amount)
+void spy(char **target_adrs, int adrs_amount)
 {
     unsigned long long old_tsc, tsc = rdtsc();
-    unsigned int measurements[adrs_amount][probes_amount]; // results
-    for(int cur_slot=0;cur_slot<probes_amount;cur_slot++)
+    unsigned int measurements[adrs_amount][CYCLE_AMOUNT]; // results
+    for(int cur_slot=0;cur_slot<CYCLE_AMOUNT;cur_slot++)
     {
         // update time stamps
         old_tsc = tsc;
@@ -116,12 +117,12 @@ void spy(char **target_adrs, int adrs_amount, int probes_amount)
         {
             char *ptr=target_adrs[cur_adr_i];
             measurements[cur_adr_i][cur_slot]=probe_precise(ptr); 
-            printf("measured value for adrs %p is %i\n", ptr, measurements[cur_adr_i][cur_slot]);                             // probe
+            //printf("measured value for adrs %p is %i\n", ptr, measurements[cur_adr_i][cur_slot]);                             // probe
                                                                                                         // add timing to array for persistence 
         }
                                                                                                         // wait 2500 cycles in ns current_probe_time asd (how?)
     }
-    writer(target_adrs, adrs_amount, measurements, probes_amount);
+    writer(target_adrs, adrs_amount, measurements);
     printf("end spy\n");
 }
 
@@ -132,9 +133,9 @@ int main(int argc, char *argv[])
     char *target_adrs[2];
     target_adrs[0]=(char *)0x00000000000967c7;
     target_adrs[1]=(char *)0x0000000000095f5d;
-    int adrs_amount = 2, pr_amount = 2000;
+    int adrs_amount = 2;
     printf("starting spy\n");
-    spy(target_adrs, adrs_amount, pr_amount);
+    spy(target_adrs, adrs_amount);
     printf("ending\n");    
 }
 
