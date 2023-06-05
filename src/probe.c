@@ -130,6 +130,15 @@ void spy(char **target_adrs, int adrs_amount)
 int main()
 {
     printf("starting\n");
+    int map_len = 10; // max size bytes?
+    int file_descriptor = open("C:/cygwin64/home/thesis/flush-reload/textexec.exe", O_RDONLY); // hard coded path for the executable used by the victim 
+    void *base = mmap(NULL, map_len, PROT_READ, MAP_FILE | MAP_SHARED, file_descriptor, 0);
+    printf("binary mapped to %p\n", file_descriptor);
+
+    // TODO offsets (?)
+
+    // TODO switch off ASLR
+
     char *target_adrs[2];
     target_adrs[0]=(char *) 0x1004010be;//0x0000000100401133;
     target_adrs[1]=(char *) 0x1004010d2;//0x1004010d5; //0x0000000000095f5d;
