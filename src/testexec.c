@@ -20,7 +20,7 @@ int square_and_multiply(int base, int exponent, int modulus) {
 int main() 
 {
     int base = 17;
-    int exponent = 0b111000110010111;
+    int exponent = 0b1110001100101111110001100101111;
     int modulus = 37;
 
     int result = square_and_multiply(base, exponent, modulus);
