@@ -143,6 +143,10 @@ void spy(char **target_adrs, int adrs_amount)
 int main()
 {
     printf("starting\n");
+
+    void (*fPtr)() = &spy;
+    printf("Adresse der Funktion spy: %p\n", fPtr);
+
     int map_len = 10; // max size bytes?
     int file_descriptor = open("C:/cygwin64/home/thesis/flush-reload/textexec.exe", O_RDONLY); // hard coded path to open the executable used by the victim 
     void *base = mmap(NULL, map_len, PROT_READ, MAP_FILE | MAP_SHARED, file_descriptor, 0); // MAP_FILE ignored (?)
