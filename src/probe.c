@@ -1,4 +1,4 @@
-//#include <fcntl.h> // TODO remove unneeded libs
+#include <fcntl.h> // TODO remove unneeded libs
 //#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -140,8 +140,8 @@ int main()
     // TODO switch off ASLR
     
     char *target_adrs[2];
-    target_adrs[0]=(char *) = base+0x1004010be-0x100401080;//0x0000000100401133;
-    target_adrs[1]=(char *) = base+0x1004010be-0x1004010d2;//0x1004010d5; //0x0000000000095f5d;
+    target_adrs[0]=(char *) base+62;//0x1004010be-0x100401080;//0x0000000100401133;
+    target_adrs[1]=(char *) base+82;//0x1004010d2-0x100401080;//0x1004010d5; //0x0000000000095f5d;
     int adrs_amount = 2;
     printf("starting spy\n");
     spy(target_adrs, adrs_amount);
