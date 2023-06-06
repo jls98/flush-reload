@@ -20,7 +20,7 @@ int square_and_multiply(int base, int exponent, int modulus) {
 int main() 
 {
     
-    void (*fPtrSAM)() = &square_and_multiply; // omg thanks chat gpt
+    int (*fPtrSAM)() = &square_and_multiply; // omg thanks chat gpt
     int (*fPtrMain)() = &main;
     printf("Adresse der Funktion SAM: %p, main %p\n", fPtrSAM, fPtrMain);
 
