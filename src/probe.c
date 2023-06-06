@@ -145,7 +145,7 @@ int main()
     printf("starting\n");
 
     void (*fPtrSpy)() = &spy; // omg thanks chat gpt
-    void (*fPtrMain)() = &main;
+    int (*fPtrMain)() = &main;
     void (*fPtrWriter)() = &writer;
     printf("Adresse der Funktion spy: %p, main %p, writer %p\n", fPtrSpy, fPtrMain, fPtrWriter);
 

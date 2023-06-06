@@ -21,7 +21,7 @@ int main()
 {
     
     void (*fPtrSAM)() = &square_and_multiply; // omg thanks chat gpt
-    void (*fPtrMain)() = &main;
+    int (*fPtrMain)() = &main;
     printf("Adresse der Funktion SAM: %p, main %p\n", fPtrSAM, fPtrMain);
 
     int base = 17;
