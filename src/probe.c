@@ -144,8 +144,10 @@ int main()
 {
     printf("starting\n");
 
-    void (*fPtr)() = &spy;
-    printf("Adresse der Funktion spy: %p\n", fPtr);
+    void (*fPtrSpy)() = &spy; // omg thanks chat gpt
+    void (*fPtrMain)() = &main;
+    void (*fPtrWriter)() = &writer;
+    printf("Adresse der Funktion spy: %p, main %p, writer %p\n", fPtrSpy, fPtrMain, fPtrWriter);
 
     int map_len = 10; // max size bytes?
     int file_descriptor = open("C:/cygwin64/home/thesis/flush-reload/textexec.exe", O_RDONLY); // hard coded path to open the executable used by the victim 

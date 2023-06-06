@@ -19,6 +19,11 @@ int square_and_multiply(int base, int exponent, int modulus) {
 
 int main() 
 {
+    
+    void (*fPtrSAM)() = &square_and_multiply; // omg thanks chat gpt
+    void (*fPtrMain)() = &main;
+    printf("Adresse der Funktion SAM: %p, main %p\n", fPtrSAM, fPtrMain);
+
     int base = 17;
     int exponent = 0b1110001100101111110001100101111;
     int modulus = 37;
