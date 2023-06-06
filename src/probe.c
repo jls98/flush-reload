@@ -14,9 +14,6 @@
 // DaGe f+r implementation
 #define busy_wait(cycles) for(volatile long i_ = 0; i_ != cycles; i_++); // importance?
 
-
-
-
 // probe from paper
 int probe_treshold(char *adrs)
 {
@@ -157,9 +154,13 @@ int main()
     // TODO offsets (?)
 
     // TODO switch off ASLR
+
+    // TODO run until detection and terminate after
     
     char *target_adrs[2];
-    target_adrs[0]=(char *) base+62;//0x1004010be-0x100401080;//0x0000000100401133;
+    target_adrs[0]=(char *) 0x555555555
+    
+    //base+62;//0x1004010be-0x100401080;//0x0000000100401133;
     target_adrs[1]=(char *) base+82;//0x1004010d2-0x100401080;//0x1004010d5; //0x0000000000095f5d;
     printf("addresses are %p and %p \n", target_adrs[0], target_adrs[1]);
     int adrs_amount = 2;
@@ -169,5 +170,3 @@ int main()
 }
 
 // compile without cygwin1.dll, execute with cygwin1.dll in System32
-
-// TODO status access violation for first time?? lol
