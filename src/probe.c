@@ -112,7 +112,7 @@ void spy(char **target_adrs, int adrs_amount)
             //busy_wait((2500-tsc+old_tsc) / 50);
             tsc = rdtsc();
         }
-        printf("system time counter: %llu, counter diff: %llu\n", tsc, tsc-old_tsc);
+        //printf("system time counter: %llu, counter diff: %llu\n", tsc, tsc-old_tsc);
         for(int cur_adr_i=0;cur_adr_i<adrs_amount;cur_adr_i++)
         {
             char *ptr=target_adrs[cur_adr_i];
