@@ -14,6 +14,11 @@
 // DaGe f+r implementation
 #define busy_wait(cycles) for(volatile long i_ = 0; i_ != cycles; i_++); // importance?
 
+#define TESTEXEC_WINDOWS
+
+#define DEBUG
+
+
 // probe from paper
 int probe_treshold(char *adrs)
 {
@@ -101,6 +106,12 @@ void writer(char **target_adrs, int adrs_amount, unsigned int measurements[][CYC
     
 }
 
+void lurk(char* target_adrs)
+{
+
+}
+
+
 /**
  * loop
  * probe addresses and safe results in lists (or define length ("buffer") at beginning and just fill array)
@@ -122,7 +133,9 @@ void spy(char **target_adrs, int adrs_amount)
             //busy_wait((2500-tsc+old_tsc) / 50);
             tsc = rdtsc();
         }
-        //printf("system time counter: %llu, counter diff: %llu\n", tsc, tsc-old_tsc);
+        #ifdef DEBUG
+        printf("system time counter: %llu, counter diff: %llu\n", tsc, tsc-old_tsc);
+        #endif
         for(int cur_adr_i=0;cur_adr_i<adrs_amount;cur_adr_i++)
         {
             char *ptr=target_adrs[cur_adr_i];
@@ -141,15 +154,25 @@ int main()
 {
     printf("starting\n");
 
+    // addresses ------
+    #ifdef TESTEXEC_WINDOWS
+    int amount_address_offsets = 2;
+    int target_offset[2];
+    target_offset[0]=62;
+    target_offset[1]=82;
+
+    #endif
+
+    // --------------------
     void (*fPtrSpy)() = &spy; // omg thanks chat gpt
     int (*fPtrMain)() = &main;
     void (*fPtrWriter)() = &writer;
+    #ifdef DEBUG
     printf("Adresse der Funktion spy: %p, main %p, writer %p\n", fPtrSpy, fPtrMain, fPtrWriter);
-
+    #endif
     int map_len = 10; // max size bytes?
     int file_descriptor = open("C:/cygwin64/home/thesis/flush-reload/textexec.exe", O_RDONLY); // hard coded path to open the executable used by the victim 
     void *base = mmap(NULL, map_len, PROT_READ, MAP_FILE | MAP_SHARED, file_descriptor, 0); // MAP_FILE ignored (?)
-    printf("binary mapped to %p\n", base);
 
     // TODO offsets (?)
 
@@ -157,16 +180,20 @@ int main()
 
     // TODO run until detection and terminate after
     
-    char *target_adrs[2];
-    target_adrs[0]=(char *) 0x555555555
-    
-    //base+62;//0x1004010be-0x100401080;//0x0000000100401133;
-    target_adrs[1]=(char *) base+82;//0x1004010d2-0x100401080;//0x1004010d5; //0x0000000000095f5d;
-    printf("addresses are %p and %p \n", target_adrs[0], target_adrs[1]);
+    char *target_adrs[amount_address_offsets];
+    for (int i= 0; i<amount_address_offsets; i++)
+    {
+        target_adrs[i]=(char *) base+target_offset[i];
+    }
+    //0x1004010be-0x100401080;//0x0000000100401133;
+    //0x1004010d2-0x100401080;//0x1004010d5; //0x0000000000095f5d;
+    #ifdef DEBUG
+    printf("addresses are %p and %p, binary mapped to %p \n", target_adrs[0], target_adrs[1], base); // debug
+    #endif
     int adrs_amount = 2;
     printf("starting spy\n");
     spy(target_adrs, adrs_amount);
-    printf("ending\n");    
+    printf("finished\n");    
 }
 
 // compile without cygwin1.dll, execute with cygwin1.dll in System32
