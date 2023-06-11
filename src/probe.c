@@ -105,9 +105,6 @@ void writer(char **target_adrs, int adrs_amount, unsigned int measurements[][CYC
     }
 }
 
-
-
-
 /**
  * loop
  * probe addresses and safe results in lists (or define length ("buffer") at beginning and just fill array)
@@ -157,6 +154,7 @@ void lurk(char* target_base_adrs, char **target_adrs, int adrs_amount)
         }
         if (probe_treshold(target_base_adrs))
         {
+            printf("Detected victim activity - starting spy \n");
             spy(target_adrs, adrs_amount);
         }
     }
@@ -168,10 +166,10 @@ void control()
     #ifdef TESTEXEC_WINDOWS
     int amount_address_offsets = 2;
     int target_offset[2];
-    target_offset[0]=62;
-    target_offset[1]=85;
+    target_offset[0]    = 62;
+    target_offset[1]    = 85;
 
-    char* target_base = 0x100401080;
+    char* target_base   = (char *) 0x100401080;
 
     // base should be 0x100401080 (square_and_multiply) or 0x1004010fe (main)
     #endif
@@ -179,9 +177,9 @@ void control()
 
 
 
-    int map_len = 10; // max size bytes?
+    int map_len         = 10; // max size bytes?
     int file_descriptor = open("C:/cygwin64/home/thesis/flush-reload/textexec.exe", O_RDONLY); // hard coded path to open the executable used by the victim 
-    void *base = mmap(NULL, map_len, PROT_READ, MAP_FILE | MAP_SHARED, file_descriptor, 0); // MAP_FILE ignored (?)
+    void *base          = mmap(NULL, map_len, PROT_READ, MAP_FILE | MAP_SHARED, file_descriptor, 0); // MAP_FILE ignored (?)
 
     // TODO offsets (?)
 
@@ -202,8 +200,6 @@ void control()
     #endif
     int adrs_amount = 2;
     lurk(target_base, target_adrs, adrs_amount);
-    printf("starting spy\n");
-    spy(target_adrs, adrs_amount);
 }
 
 // default address values (?)
