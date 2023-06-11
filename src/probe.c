@@ -140,8 +140,9 @@ void spy(char **target_adrs, int adrs_amount)
         {
             char *ptr=target_adrs[cur_adr_i];
             measurements[cur_adr_i][cur_slot]=probe(ptr); 
-            //printf("measured value for adrs %p is %i\n", ptr, measurements[cur_adr_i][cur_slot]);                             // probe
-                                                                                                        // add timing to array for persistence 
+            #ifdef DEBUG
+            printf("measured value for adrs %p is %i\n", ptr, measurements[cur_adr_i][cur_slot]);                             // probe
+            #endif                                                                                            // add timing to array for persistence 
         }
                                                                                                         // wait 2500 cycles in ns current_probe_time asd (how?)
     }
@@ -159,8 +160,9 @@ int main()
     int amount_address_offsets = 2;
     int target_offset[2];
     target_offset[0]=62;
-    target_offset[1]=82;
+    target_offset[1]=85;
 
+    // base should be 0x100401080 (square_and_multiply) or 0x1004010fe (main)
     #endif
 
     // --------------------
