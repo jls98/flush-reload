@@ -186,7 +186,7 @@ void control()
     // --------------------
 
     int map_len         = 10; // max size bytes?
-    int file_descriptor = open("C:/cygwin64/home/thesis/flush-reload/textexec.exe", O_RDONLY); // hard coded path to open the executable used by the victim 
+    int file_descriptor = open("~/Documents/flush-reload/textexec", O_RDONLY); // hard coded path to open the executable used by the victim 
     void *base          = mmap(NULL, map_len, PROT_READ, MAP_FILE | MAP_SHARED, file_descriptor, 0); // MAP_FILE ignored (?)
     if (base == MAP_FAILED) {
         perror("mmap failed!");
