@@ -39,7 +39,7 @@ int probe_treshold(char *adrs)
         : "c" (adrs)
         : "%esi", "%edx");
     #ifdef DEBUG_TIME
-    printf("measured time is %i\n", time);
+    printf("measured time is %li\n", time);
     #endif
     return time < THRESHOLD; 
 }
@@ -64,7 +64,7 @@ int probe_precise(char *adrs)
         : "c" (adrs)
         : "%esi", "%edx");
     #ifdef DEBUG_TIME
-    printf("measured time is %i\n", time);
+    printf("measured time is %li\n", time);
     #endif
     return time; 
 }
