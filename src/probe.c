@@ -104,7 +104,7 @@ void writer(char **target_adrs, int adrs_amount, unsigned int measurements[][CYC
 {
     char name_buf[50];
     char result_buf[20];
-    for(int i=0; i<adrs_amount; i++)
+    for(int i = 0; i<adrs_amount; i++)
     {
         char *ptr = target_adrs[i];
         sprintf(name_buf, "measurements/measurements_%p_%lld.txt", ptr, rdtsc());
@@ -119,7 +119,6 @@ void writer(char **target_adrs, int adrs_amount, unsigned int measurements[][CYC
             sprintf(result_buf, "%d\n", measurements[i][j]);
             fprintf(file, result_buf);
         }
-
         fclose(file);
     }
 }
@@ -256,11 +255,9 @@ void control()
     //void *base = mmap(NULL, map_len, PROT_READ, MAP_FILE | MAP_SHARED, file_descriptor, 0); // MAP_FILE ignored (?)
     if (base == MAP_FAILED) {
         perror("mmap failed!");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
     // TODO offsets (?)
-
-    // TODO switch off ASLR
 
     // TODO run until detection and terminate after
     
