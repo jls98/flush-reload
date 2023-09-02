@@ -119,7 +119,7 @@ void writer(char **target_adrs, int adrs_amount, unsigned int measurements[][CYC
         for (int j=0; j<CYCLE_AMOUNT; j++)
         {
             sprintf(result_buf, "%d\n", measurements[i][j]);
-            fprintf(file, result_buf);
+            fputs(result_buf, file);
         }
         fclose(file);
     }
