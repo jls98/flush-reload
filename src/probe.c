@@ -20,6 +20,18 @@
 //#define DEBUG_PLUS
 //#define DEBUG_TIME
 
+
+typedef struct node {
+    char *adrs;
+    struct node *next;
+} node_t;
+
+typedef struct adresses{
+    int amount;
+    node_t *probe_adresses;
+}adresses_t;
+
+
 // probe from paper
 int probe_treshold(char *adrs)
 {
@@ -95,12 +107,12 @@ void writer(char **target_adrs, int adrs_amount, unsigned int measurements[][CYC
     for(int i=0; i<adrs_amount; i++)
     {
         char *ptr = target_adrs[i];
-        sprintf(name_buf, "measurements_%p_%lld.txt", ptr, rdtsc());
+        sprintf(name_buf, "measurements/measurements_%p_%lld.txt", ptr, rdtsc());
         FILE *file = fopen(name_buf, "w");
         if (file == NULL)
         {
-            printf("Failed to open the file.\n");
-            return; // Exit
+            printf("Failed to open the file (fopen).\n");
+            exit(EXIT_FAILURE); // Exit
         }
         for (int j=0; j<CYCLE_AMOUNT; j++)
         {
@@ -110,6 +122,53 @@ void writer(char **target_adrs, int adrs_amount, unsigned int measurements[][CYC
 
         fclose(file);
     }
+}
+
+adresses_t *file_loader(char *file_path)
+{
+    // TODO
+    // load and parse lines
+    FILE *fp;
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
+
+    fp = fopen(file_path, "r");
+    if (fp == NULL)
+    {
+        perror("Error reading adress file (fopen)!\n");
+        exit(EXIT_FAILURE);
+    }
+    
+    // init linked list
+    node_t *node_head;
+    node_t *node_current;
+    int head_set = 1;
+    int adrs_counter = 0;
+    while ((read = getline(&line, &len, fp)) != -1) {
+        node_t *node_new = (node_t *) malloc(sizeof(node_t));
+        node_new->adrs = line;
+        if (head_set)
+        {
+            node_head = node_new;
+            node_current = node_head;
+            head_set = 0;
+        } else {
+            node_current->next = node_new;
+            node_current = node_new;
+        }
+        adrs_counter++;        
+    }
+    node_current->next = NULL;
+
+    fclose(fp);
+    free(line);
+
+    // fill values to struct
+    adresses_t *adresses = (adresses_t *) malloc(sizeof(adresses_t));
+    adresses->amount = adrs_counter;
+    adresses->probe_adresses = node_head;
+    return adresses;
 }
 
 /**
@@ -189,9 +248,12 @@ void control()
     // --------------------
 
     int map_len         = 20000; // max size bytes?
-    int file_descriptor = fileno(fopen("/home/jia/Documents/flush-reload/testexec", "r"));     // hard coded path to open the executable used by the victim 
+
+    FILE *file_pointer = fopen("/home/jia/Documents/flush-reload/testexec", "r");
+    int file_descriptor = fileno(file_pointer);     // hard coded path to open the executable used by the victim 
     printf("fd has value %i\n", file_descriptor);
-    void *base          = mmap(NULL, map_len, PROT_READ, MAP_FILE | MAP_SHARED, file_descriptor, 0); // MAP_FILE ignored (?)
+    void *base = mmap(NULL, map_len, PROT_READ, MAP_SHARED, file_descriptor, 0); // MAP_FILE ignored (?)
+    //void *base = mmap(NULL, map_len, PROT_READ, MAP_FILE | MAP_SHARED, file_descriptor, 0); // MAP_FILE ignored (?)
     if (base == MAP_FAILED) {
         perror("mmap failed!");
         exit(1);
@@ -201,7 +263,6 @@ void control()
     // TODO switch off ASLR
 
     // TODO run until detection and terminate after
-
     
     char *target_adrs[amount_address_offsets];
     for (int i= 0; i<amount_address_offsets; i++)
