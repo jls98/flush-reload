@@ -5,6 +5,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <string.h>
 
 #define THRESHOLD (int) 180
 #define CYCLE_AMOUNT (int) 200000
@@ -14,7 +15,8 @@
 // DaGe f+r implementation
 #define busy_wait(cycles) for(volatile long i_ = 0; i_ != cycles; i_++); // importance?
 
-#define TESTEXEC_WINDOWS
+//#define TESTEXEC_WINDOWS
+#define TESTEXEC_UBUNTU
 
 #define DEBUG
 //#define DEBUG_PLUS
@@ -31,7 +33,7 @@ typedef struct adresses{
     node_t *probe_adresses;
 }adresses_t;
 
-
+char *probe_path = "/home/jia/Documents/flush-reload/probe_adresses";
 // probe from paper
 int probe_treshold(char *adrs)
 {
@@ -127,12 +129,11 @@ adresses_t *file_loader(char *file_path)
 {
     // TODO
     // load and parse lines
-    FILE *fp;
+    FILE *fp = fopen(file_path, "r");
     char *line = NULL;
     size_t len = 0;
     ssize_t read;
 
-    fp = fopen(file_path, "r");
     if (fp == NULL)
     {
         perror("Error reading adress file (fopen)!\n");
@@ -144,9 +145,12 @@ adresses_t *file_loader(char *file_path)
     node_t *node_current;
     int head_set = 1;
     int adrs_counter = 0;
+
+    // https://linux.die.net/man/3/getline
     while ((read = getline(&line, &len, fp)) != -1) {
         node_t *node_new = (node_t *) malloc(sizeof(node_t));
-        node_new->adrs = line;
+        (&line)[strlen(line)-1] = "\0"; //delete "\n"
+        node_new->adrs = (char *)strtol(line, NULL, 16); // make read string to pointer
         if (head_set)
         {
             node_head = node_new;
@@ -208,7 +212,7 @@ void spy(char **target_adrs, int adrs_amount)
     printf("end spy\n");
 }
 
-void lurk(char* target_base_adrs, char **target_adrs, int adrs_amount)
+void lurk(char **target_adrs, int adrs_amount)
 {
     unsigned long long old_tsc, tsc = rdtsc();
     while(1)
@@ -219,7 +223,7 @@ void lurk(char* target_base_adrs, char **target_adrs, int adrs_amount)
         {
             tsc = rdtsc();
         }
-        bool detected = probe_treshold(target_base_adrs);
+        bool detected = probe_treshold(target_adrs[0]);
         if (detected)
         {
             printf("Detected %d victim activity - starting spy \n", detected);
@@ -238,11 +242,13 @@ void control()
     target_offset[0]    = 61;
     target_offset[1]    = 84;
 
-    char* target_base   = (char *) 0x555555555149; 
-
+    char* target_base = (char *) 0x555555555149; 
+    #endif
     // base should be 0x100401080 (square_and_multiply) or 0x1004010fe (main)
 
     // base linux 0x5555555551c7 main, 0x555555555149 sqm
+    #ifdef TESTEXEC_UBUNTU
+    adresses_t *targets = file_loader(probe_path);
     #endif
     // --------------------
 
@@ -261,17 +267,14 @@ void control()
 
     // TODO run until detection and terminate after
     
-    char *target_adrs[amount_address_offsets];
-    for (int i= 0; i<amount_address_offsets; i++)
+    char *target_adrs[targets->amount];
+    node_t *node_current = targets->probe_adresses;
+    for (int i= 0; i<targets->amount; i++)
     {
-        target_adrs[i]=(char *) target_base+target_offset[i];
+        target_adrs[i] = node_current->adrs;
+        node_current = node_current->next;
     }
-
-    #ifdef DEBUG
-    printf("addresses are %p and %p, binary mapped to %p \n", target_adrs[0], target_adrs[1], target_base); // debug
-    #endif
-    int adrs_amount = 2;
-    lurk(target_base, target_adrs, adrs_amount);
+    lurk(target_adrs, targets->amount);
 }
 
 // default address values (?)
