@@ -2,16 +2,12 @@
 
 int gcd_simple(int number1, int number2)
 {
-    if (number1 < 1 || number2 < 1)
-        return 0;
+    if (number1 < 1 || number2 < 1) return 0;
     int gcd = 1;
-
     for (int i = 1; i <= number1 && i <= number2; ++i)
     {
-        if (number1 % i == 0 && number2 % i == 0)
-        {
-            gcd = i;
-        }
+        if (number1 % i == 0 && number2 % i == 0) gcd = i;
+        
     }
     return gcd;
 }
@@ -28,11 +24,12 @@ int gcd_euklidean(int number1, int number2)
     return a;
 }
 
-int main() 
+int main(int argc, char *argv[]) 
 {
+    if(argc != 3) return 1;
+    int a = argv[1] != NULL ? argv[1] : 1, b = argv[2] != NULL ? argv[2] : 1, c;
     
-    int a = 24, b = 18, c;
-    c = gcd_simple(a, b);
+    c = gcd_euklidean(a, b);
     printf("The GCD of %i and %i is %i!\n", a, b, c);
     return 0;
 }
