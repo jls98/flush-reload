@@ -275,6 +275,8 @@ void control()
         node_current = node_current->next;
     }
     lurk(base, target_adrs, targets->amount);
+
+    munmap(base, map_len);
 }
 
 // default address values (?)
