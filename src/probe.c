@@ -127,8 +127,6 @@ void writer(char **target_adrs, int adrs_amount, unsigned int measurements[][CYC
 
 adresses_t *file_loader(char *file_path)
 {
-    // TODO
-    // load and parse lines
     FILE *fp = fopen(file_path, "r");
     char *line = NULL;
     size_t len = 0;
@@ -147,6 +145,7 @@ adresses_t *file_loader(char *file_path)
     int adrs_counter = 0;
 
     // https://linux.die.net/man/3/getline
+    // read line for line and parse linewise read string to pointers
     while ((read = getline(&line, &len, fp)) != -1) {
         node_t *node_new = (node_t *) malloc(sizeof(node_t));
         (&line)[strlen(line)-1] = "\0"; //delete "\n"
@@ -167,7 +166,7 @@ adresses_t *file_loader(char *file_path)
     fclose(fp);
     free(line);
 
-    // fill values to struct
+    // insert values to return struct
     adresses_t *adresses = (adresses_t *) malloc(sizeof(adresses_t));
     adresses->amount = adrs_counter;
     adresses->probe_adresses = node_head;
