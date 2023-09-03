@@ -271,7 +271,7 @@ void control()
     node_t *node_current = targets->probe_adresses;
     for (int i= 0; i<targets->amount; i++)
     {
-        target_adrs[i] = (char *) ((int)node_current->adrs + (int) base);
+        target_adrs[i] = (char *) ((unsigned long)node_current->adrs + (unsigned long) base);
         node_current = node_current->next;
     }
     lurk(base, target_adrs, targets->amount);
