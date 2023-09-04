@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 int gcd_simple(int number1, int number2)
 {
@@ -27,8 +28,8 @@ int gcd_euklidean(int number1, int number2)
 int main(int argc, char *argv[]) 
 {
     if(argc != 3) return 1;
-    int a = argv[1] != NULL ? argv[1] : 1, b = argv[2] != NULL ? argv[2] : 1, c;
-    
+    int a = strtol(argv[1], NULL, 10) != 0 ? strtol(argv[1], NULL, 10) : 1, b = strtol(argv[2], NULL, 10) != 0 ? strtol(argv[2], NULL, 10) : 1, c;
+
     c = gcd_euklidean(a, b);
     printf("The GCD of %i and %i is %i!\n", a, b, c);
     return 0;

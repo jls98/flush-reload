@@ -251,7 +251,7 @@ void control()
 
     int map_len         = 20000; // max size bytes?
 
-    FILE *file_pointer = fopen("/home/jia/Documents/flush-reload/testexec", "r");
+    FILE *file_pointer = fopen("/home/jia/Documents/flush-reload/victim", "r");
     int file_descriptor = fileno(file_pointer);     // hard coded path to open the executable used by the victim 
     printf("fd has value %i\n", file_descriptor);
     void *base = mmap(NULL, map_len, PROT_READ, MAP_SHARED, file_descriptor, 0); // MAP_FILE ignored (?)
