@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#define THRESHOLD (int) 180
+#define THRESHOLD (int) 120
 #define CYCLE_AMOUNT (int) 200000
 
 //#define MEASUREMENT_THRESHOLD // toggle for 0/1 measurements
@@ -244,7 +244,6 @@ void control()
     char* target_base = (char *) 0x555555555149; 
     #endif
     // base should be 0x100401080 (square_and_multiply) or 0x1004010fe (main)
-
     // base linux 0x5555555551c7 main, 0x555555555149 sqm
     
     // --------------------
@@ -260,9 +259,7 @@ void control()
         perror("mmap failed!");
         exit(EXIT_FAILURE);
     }
-    // TODO offsets (?)
 
-    // TODO run until detection and terminate after
     #ifdef TESTEXEC_UBUNTU
     adresses_t *targets = file_loader(probe_path);
     #endif
