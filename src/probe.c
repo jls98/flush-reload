@@ -6,6 +6,9 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
 
 #define THRESHOLD (int) 120
 #define CYCLE_AMOUNT (int) 200000
@@ -248,11 +251,13 @@ void control()
     
     // --------------------
 
-    int map_len         = 20000; // max size bytes?
-
     FILE *file_pointer = fopen("/home/jia/Documents/flush-reload/victim", "r");
     int file_descriptor = fileno(file_pointer);     // hard coded path to open the executable used by the victim 
     printf("fd has value %i\n", file_descriptor);
+    
+    struct stat st_buf;
+    fstat(file_descriptor, &st_buf);
+    int map_len = st_buf.st_size;
     void *base = mmap(NULL, map_len, PROT_READ, MAP_SHARED, file_descriptor, 0); // MAP_FILE ignored (?)
     //void *base = mmap(NULL, map_len, PROT_READ, MAP_FILE | MAP_SHARED, file_descriptor, 0); // MAP_FILE ignored (?)
     if (base == MAP_FAILED) {
@@ -288,7 +293,7 @@ int main()
     #endif
     printf("starting\n");
     control();   
-    printf("finished\n");    
+    printf("finished\n");   
 }
 
 // compile without cygwin1.dll, execute with cygwin1.dll in System32
