@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 int gcd_simple(int number1, int number2)
 {
@@ -27,10 +28,20 @@ int gcd_euklidean(int number1, int number2)
 
 int main(int argc, char *argv[]) 
 {
-    if(argc != 3) return 1;
-    int a = strtol(argv[1], NULL, 10) != 0 ? strtol(argv[1], NULL, 10) : 1, b = strtol(argv[2], NULL, 10) != 0 ? strtol(argv[2], NULL, 10) : 1, c;
-
-    c = gcd_euklidean(a, b);
-    printf("The GCD of %i and %i is %i!\n", a, b, c);
+    if(argc != 4) return 1;
+    int mode, a = strtol(argv[1], NULL, 10) != 0 ? strtol(argv[1], NULL, 10) : 1, b = strtol(argv[2], NULL, 10) != 0 ? strtol(argv[2], NULL, 10) : 1, c;
+    
+    if(*argv[3] == 0 || *argv[3] == 1)
+    {
+    	mode = *argv[3];
+    }
+    else 
+    {
+	mode = ((unsigned)time(NULL)) % 2;
+    }   
+    c = mode ? gcd_euklidean(a, b) : gcd_simple(a, b);
+    
+	
+    printf("The GCD of %i and %i is %i! And mode is %i\n", a, b, c, mode);
     return 0;
 }
