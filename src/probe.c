@@ -96,7 +96,8 @@ void writer(char **target_adrs, int adrs_amount, unsigned int measurements[][CYC
     for(int i = 0; i<adrs_amount; i++)
     {
         char *ptr = target_adrs[i];
-        sprintf(name_buf, "measurements/measurements_%p_%lld.txt", ptr, rdtsc());
+	unsigned long long now = rdtsc();
+        sprintf(name_buf, "measurements/exp_%lld_%d_%p.txt", now, i, ptr);
         FILE *file = fopen(name_buf, "w");
         if (file == NULL)
         {
