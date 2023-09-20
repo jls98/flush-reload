@@ -33,7 +33,9 @@ int main(int argc, char *argv[])
     
 	//mode = *argv[3] == 0 || *argv[3] == 1 ? (unsigned int) *argv[3] : ((unsigned)time(NULL)) % 2; 
     mode = *argv[3] % 2;
-    c = mode ? gcd_simple(a, b) : gcd_simple(a, b);
+    c = mode ? gcd_simple(a, b) : gcd_euklidean(a, b);
+    //c = mode ? gcd_simple(a, b) : gcd_simple(a, b);
+    //c = mode ? gcd_euklidean(a, b) : gcd_euklidean(a, b);
     
     printf("The GCD of %i and %i is %i! And mode is %i\n", a, b, c, mode);
     return 0;

