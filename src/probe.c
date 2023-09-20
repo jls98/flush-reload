@@ -14,10 +14,6 @@
 #define CYCLE_AMOUNT (int) 200000
 
 //#define MEASUREMENT_THRESHOLD // toggle for 0/1 measurements
-
-// DaGe f+r implementation
-#define busy_wait(cycles) for(volatile long i_ = 0; i_ != cycles; i_++); // importance?
-
 #define TESTEXEC_UBUNTU
 
 typedef struct node {
@@ -93,10 +89,10 @@ void writer(char **target_adrs, int adrs_amount, unsigned int measurements[][CYC
 {
     char name_buf[50];
     char result_buf[20];
+    unsigned long long now = rdtsc();
     for(int i = 0; i<adrs_amount; i++)
     {
         char *ptr = target_adrs[i];
-	unsigned long long now = rdtsc();
         sprintf(name_buf, "measurements/exp_%lld_%d_%p.txt", now, i, ptr);
         FILE *file = fopen(name_buf, "w");
         if (file == NULL)
@@ -113,6 +109,7 @@ void writer(char **target_adrs, int adrs_amount, unsigned int measurements[][CYC
     }
 }
 
+// load probe adresses from file
 adresses_t *file_loader(char *file_path)
 {
     FILE *fp = fopen(file_path, "r");
@@ -161,21 +158,16 @@ adresses_t *file_loader(char *file_path)
     return adresses;
 }
 
-/**
- * loop
- * probe addresses and safe results in lists (or define length ("buffer") at beginning and just fill array)
- * wait (how to ensure constant duration of time slots?)
- * if no cache hits for X times or array full finish and create files with timings
- */
+// spy
 void spy(char **target_adrs, int adrs_amount)
 {
     unsigned long long old_tsc, tsc = rdtsc();
     unsigned int measurements[adrs_amount][CYCLE_AMOUNT]; // results
-    for(int cur_slot=0;cur_slot<CYCLE_AMOUNT;cur_slot++)
+    for(int cur_slot = 0; cur_slot<CYCLE_AMOUNT; cur_slot++)
     {
         // update time stamps
         old_tsc = tsc;
-        tsc=rdtsc();
+        tsc = rdtsc();
         while (tsc - old_tsc < 2500) // TODO why 2500/500 cycles per slot now, depending on printf
         {
             tsc = rdtsc();
@@ -187,7 +179,7 @@ void spy(char **target_adrs, int adrs_amount)
         }
     }
     writer(target_adrs, adrs_amount, measurements);
-    printf("end spy\n");
+    printf("Spy finished!\n");
 }
 
 void lurk(void *base, char **target_adrs, int adrs_amount)
